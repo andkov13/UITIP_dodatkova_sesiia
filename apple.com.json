@@ -1,0 +1,39 @@
+{
+  "domain": "apple.com",
+  "uk": {
+    "language": "uk",
+    "localized_page_found": true,
+    "page_language": "uk-UA",
+    "cookie_banner": false,
+    "privacy_policy_found": true,
+    "privacy_mentions_data": true,
+    "cookie_policy_found": false,
+    "cookie_policy_detailed": false,
+    "gdpr_compliance_score": 60,
+    "gdpr_fine_estimate": "Moderate risk of GDPR fines."
+  },
+  "de": {
+    "language": "de",
+    "localized_page_found": true,
+    "page_language": "de-AT",
+    "cookie_banner": true,
+    "privacy_policy_found": true,
+    "privacy_mentions_data": true,
+    "cookie_policy_found": true,
+    "cookie_policy_detailed": true,
+    "gdpr_compliance_score": 100,
+    "gdpr_fine_estimate": "No risk of GDPR fines."
+  },
+  "fr": {
+    "language": "fr",
+    "localized_page_found": true,
+    "page_language": "fr-BE",
+    "cookie_banner": true,
+    "privacy_policy_found": true,
+    "privacy_mentions_data": true,
+    "cookie_policy_found": true,
+    "cookie_policy_detailed": true,
+    "gdpr_compliance_score": 100,
+    "gdpr_fine_estimate": "No risk of GDPR fines."
+  }
+}
