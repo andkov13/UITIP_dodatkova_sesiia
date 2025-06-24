@@ -4,16 +4,25 @@ from playwright.async_api import async_playwright
 
 from urllib.parse import urlparse
 
-TARGET_URL = "https://www.apple.com/"
+TARGET_URL = "https://best.aliexpress.com/"
 DOMAIN_NAME = urlparse(TARGET_URL).netloc
 if DOMAIN_NAME.startswith("www."):
     DOMAIN_NAME = DOMAIN_NAME[4:]
 
 LANGUAGES = ["uk", "de", "fr"]
 
-PRIVACY_KEYWORDS = ["privacy", "конфіденційність", "приватність", "datenschutzrichtlinie", "confidentialité"]
+PRIVACY_KEYWORDS = ["privacy", "конфіденційність", "приватність", "datenschutzrichtlinie", "confidentialité", "policies", "policy", "confidential", "confidentiality"]
 COOKIE_KEYWORDS = ["cookie", "cookies", "куки"]
 CONSENT_KEYWORDS = ["consent", "згода", "відмовитися", "відмова"]
+
+proxy_servers = {
+    "de": "http://s-26696.sp2.ovh:11001",
+    "fr": "http://s-26696.sp2.ovh:11002"
+}
+usernames = {
+    "de": "wmJabM2_0",
+    "fr": "wmJabM2_1"
+}
 
 def calculate_gdpr_score(audit):
     score = 100
@@ -43,26 +52,48 @@ def estimate_fine(score):
 
 async def audit_language(playwright, language):
     browser = await playwright.chromium.launch(headless=True)
-    context = await browser.new_context(locale=language)
+    proxy = proxy_servers.get(language)
+    username = usernames.get(language)
+    context = await browser.new_context(
+        locale=language,
+        proxy={"server": proxy,"username": username, "password":"RIBkOWJDSbw8"} if proxy else None
+    )
     page = await context.new_page()
 
     print(f"\nПеревірка для мови: {language.upper()}")
-    await page.goto(TARGET_URL, wait_until="load")
+    await page.goto(TARGET_URL, wait_until="load", timeout=60000)
+    await page.reload()
+    await page.wait_for_timeout(timeout=5000)
+
+    main_page_lang = await page.locator("html").get_attribute("lang")
+    print(f"Мова основної сторінки: {main_page_lang or 'не вказано'}")
+
+    is_same_language = False
+    if main_page_lang:
+        page_lang_short = main_page_lang.split('-')[0].lower()
+        expected_lang_short = language
+        is_same_language = (page_lang_short == expected_lang_short)
 
     localized_url = None
-    hreflangs = await page.locator("link[rel='alternate']").all()
-    for tag in hreflangs:
-        hreflang = await tag.get_attribute("hreflang")
-        href = await tag.get_attribute("href")
-        if hreflang and href and language in hreflang.lower():
-            localized_url = href
-            break
+
+    if is_same_language:
+        localized_url = TARGET_URL
+
+    if not localized_url:
+        localized_url = None
+        hreflangs = await page.locator("link[rel='alternate']").all()
+        for tag in hreflangs:
+            hreflang = await tag.get_attribute("hreflang")
+            href = await tag.get_attribute("href")
+            if hreflang and href and language in hreflang.lower():
+                localized_url = href
+                break
 
     if not localized_url:
         links = await page.locator("a").all()
         for link in links:
             href = await link.get_attribute("href")
-            if href and any(code in href.lower() for code in ["/ua", "/uk", "/uk-ua", "/ukrainian", "/ua/"] if language == "uk"):
+            if href and any(code in href.lower() for code in ["/ua"] if language == "uk"):
                 localized_url = href if href.startswith("http") else f"{TARGET_URL.rstrip('/')}/{href.lstrip('/')}"
                 break
 
@@ -98,17 +129,33 @@ async def audit_language(playwright, language):
                 continue
             if not href.startswith("http"):
                 href = page.url.rstrip("/") + "/" + href.lstrip("/")
-            if any(k in text for k in PRIVACY_KEYWORDS) and not privacy_url:
+
+            href_lower = href.lower()
+
+            if not privacy_url and (
+                    any(k in text for k in PRIVACY_KEYWORDS) or any(k in href_lower for k in PRIVACY_KEYWORDS)):
                 privacy_url = href
-            if any(k in text for k in COOKIE_KEYWORDS) and not cookie_url:
+                print("Privacy URL:", privacy_url)
+
+            if not cookie_url and (
+                    any(k in text for k in COOKIE_KEYWORDS) or any(k in href_lower for k in COOKIE_KEYWORDS)):
                 cookie_url = href
-        except:
+                print("Cookie URL:", cookie_url)
+
+        except Exception as e:
             continue
 
     privacy_mentions_data = False
     if privacy_url:
         print(f"Privacy Policy: {privacy_url}")
         await page.goto(privacy_url)
+        text = await page.content()
+        if any(k in text.lower() for k in ["data", "персональні дані", "особисті дані"]):
+            print("Privacy Policy містить згадки про персональні дані.")
+            privacy_mentions_data = True
+        else:
+            print("Немає згадок про обробку персональних даних.")
+    elif banner_found:
         text = await page.content()
         if any(k in text.lower() for k in ["data", "персональні дані", "особисті дані"]):
             print("Privacy Policy містить згадки про персональні дані.")
@@ -128,6 +175,13 @@ async def audit_language(playwright, language):
             cookie_policy_detailed = True
         else:
             print("Cookie Policy не містить необхідної інформації.")
+    elif banner_found:
+        text = await page.content()
+        if any(k in text.lower() for k in ["cookie", "cookies", "печиво", "track", "зберігається", "відмовитись"]):
+            print("Cookie Policy пояснює використання cookies.")
+            cookie_policy_detailed = True
+        else:
+            print("Cookie Policy не містить необхідної інформації.")
     else:
         print("Cookie Policy не знайдено.")
 
@@ -136,21 +190,22 @@ async def audit_language(playwright, language):
     score = calculate_gdpr_score({
         "localized_page_found": localized_found,
         "cookie_banner": banner_found,
-        "privacy_policy_found": bool(privacy_url),
+        "privacy_policy_found": bool(privacy_url or banner_found),
         "privacy_mentions_data": privacy_mentions_data,
-        "cookie_policy_found": bool(cookie_url),
+        "cookie_policy_found": bool(cookie_url or banner_found),
         "cookie_policy_detailed": cookie_policy_detailed
     })
     fine_estimate = estimate_fine(score)
 
     return {
         "language": language,
+        "original_page_language": main_page_lang or "not specified",
         "localized_page_found": localized_found,
         "page_language": lang_attr or "not specified",
         "cookie_banner": banner_found,
-        "privacy_policy_found": bool(privacy_url),
+        "privacy_policy_found": bool(privacy_url or banner_found),
         "privacy_mentions_data": privacy_mentions_data,
-        "cookie_policy_found": bool(cookie_url),
+        "cookie_policy_found": bool(cookie_url or banner_found),
         "cookie_policy_detailed": cookie_policy_detailed,
         "gdpr_compliance_score": score,
         "gdpr_fine_estimate": fine_estimate

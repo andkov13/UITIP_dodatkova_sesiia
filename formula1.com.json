@@ -1,0 +1,42 @@
+{
+  "domain": "formula1.com",
+  "uk": {
+    "language": "uk",
+    "original_page_language": "en",
+    "localized_page_found": false,
+    "page_language": "en",
+    "cookie_banner": true,
+    "privacy_policy_found": true,
+    "privacy_mentions_data": true,
+    "cookie_policy_found": true,
+    "cookie_policy_detailed": true,
+    "gdpr_compliance_score": 80,
+    "gdpr_fine_estimate": "Low risk of GDPR fines."
+  },
+  "de": {
+    "language": "de",
+    "original_page_language": "en",
+    "localized_page_found": false,
+    "page_language": "en",
+    "cookie_banner": true,
+    "privacy_policy_found": true,
+    "privacy_mentions_data": true,
+    "cookie_policy_found": true,
+    "cookie_policy_detailed": true,
+    "gdpr_compliance_score": 80,
+    "gdpr_fine_estimate": "Low risk of GDPR fines."
+  },
+  "fr": {
+    "language": "fr",
+    "original_page_language": "en",
+    "localized_page_found": false,
+    "page_language": "en",
+    "cookie_banner": true,
+    "privacy_policy_found": true,
+    "privacy_mentions_data": true,
+    "cookie_policy_found": true,
+    "cookie_policy_detailed": true,
+    "gdpr_compliance_score": 80,
+    "gdpr_fine_estimate": "Low risk of GDPR fines."
+  }
+}

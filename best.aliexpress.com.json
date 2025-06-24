@@ -1,23 +1,23 @@
 {
-  "domain": "apple.com",
+  "domain": "best.aliexpress.com",
   "uk": {
     "language": "uk",
-    "original_page_language": "en-US",
-    "localized_page_found": true,
-    "page_language": "uk-UA",
+    "original_page_language": "en",
+    "localized_page_found": false,
+    "page_language": "en",
     "cookie_banner": false,
     "privacy_policy_found": true,
     "privacy_mentions_data": true,
     "cookie_policy_found": false,
     "cookie_policy_detailed": false,
-    "gdpr_compliance_score": 60,
-    "gdpr_fine_estimate": "Moderate risk of GDPR fines."
+    "gdpr_compliance_score": 40,
+    "gdpr_fine_estimate": "High risk of GDPR fines. Immediate action recommended."
   },
   "de": {
     "language": "de",
-    "original_page_language": "en-US",
+    "original_page_language": "de",
     "localized_page_found": true,
-    "page_language": "de-AT",
+    "page_language": "de",
     "cookie_banner": true,
     "privacy_policy_found": true,
     "privacy_mentions_data": true,
@@ -28,9 +28,9 @@
   },
   "fr": {
     "language": "fr",
-    "original_page_language": "en-US",
+    "original_page_language": "fr",
     "localized_page_found": true,
-    "page_language": "fr-BE",
+    "page_language": "fr",
     "cookie_banner": true,
     "privacy_policy_found": true,
     "privacy_mentions_data": true,
